@@ -81,8 +81,11 @@ def train():
     running_reward = 10
     train_episodes_finished = 0
     train_scores = [0]
+    epoch_count = 0
     if LOAD:
         model.load_params("data/volleyball.params", ctx=ctx)
+        with open("data/epoch.txt", "r") as f:
+            epoch_count = int(f.read())
     else:
         pass
     
@@ -155,13 +158,15 @@ def train():
 
             if episode % DISPLAY_COUNT == 0:
                 train_scores = np.array(train_scores)
-                print("Episodes {}\t".format(episode),
+                print("Episodes {}\t".format(episode + epoch_count),
                       "Results: mean: %.1f +/- %.1f," % (train_scores.mean(), train_scores.std()),
                       "min: %.1f," % train_scores.min(), "max: %.1f," % train_scores.max(),
                       "actions: ", np.unique(actions, return_counts=True))
                 train_scores = []
             if episode % 50 == 0 and episode != 0:
                 model.save_params("data/volleyball.params")
+                with open("data/epoch.txt", "w") as f:
+                    f.write(str(episode + epoch_count))
             
     except:
         import sys, os
@@ -171,5 +176,7 @@ def train():
         print(exc_type, fname, exc_tb.tb_lineno)
     finally:
         model.save_params("data/volleyball_temp.params")
+        with open("data/epoch_temp.txt", "w") as f:
+            f.write(str(episode + epoch_count))
 
 train()
