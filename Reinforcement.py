@@ -14,7 +14,7 @@ from VolleyBall import Volleyball, GameState
 EPISODES = 1000000  # Number of episodes to be played
 LEARNING_STEPS = 60000  # Maximum number of learning steps within each episodes
 DISPLAY_COUNT = 10  # The number of episodes to play before showing statistics.
-LOAD = False
+LOAD = True
 gamma = 0.9
 beta1 = 0.9
 beta2 = 0.999
@@ -134,9 +134,9 @@ def train():
                 for i in range(len(rewards) - 1, -1, -1):
                     R = rewards[i] + gamma * R
                     rewards[i] = R
-                rewards = np.array(rewards)
-                rewards -= rewards.mean()
-                rewards /= rewards.std() + np.finfo(rewards.dtype).eps
+                # rewards = np.array(rewards)
+                # rewards -= rewards.mean()
+                # rewards /= rewards.std() + np.finfo(rewards.dtype).eps
 
                 # compute loss and gradient
                 L = sum([loss(value, mx.nd.array([r]).as_in_context(ctx)) for r, value in zip(rewards, values)])
@@ -160,7 +160,7 @@ def train():
                       "min: %.1f," % train_scores.min(), "max: %.1f," % train_scores.max(),
                       "actions: ", np.unique(actions, return_counts=True))
                 train_scores = []
-            if episode % 100 == 0 and episode != 0:
+            if episode % 50 == 0 and episode != 0:
                 model.save_params("data/volleyball.params")
             
     except:

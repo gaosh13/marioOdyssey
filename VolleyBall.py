@@ -21,10 +21,12 @@ Height = 360
 
 SCORE = {'l2': 530, 'r2': 590, 't2': 240, 'b2': 290}
 MISS = {'l2': 290, 'r2': 370, 't2': 140, 'b2': 160}
+INGAME = {'l2': 165, 'r2': 185, 't2': 300, 'b2': 340}
 ALL = {'l2': 0, 'r2': 640, 't2': 0, 'b2': 360}
 
 SCORE_ZERO_FILE = "score_pixel"
 MISS_FILE = "miss"
+INGAME_FILE = "in_game"
 
 unpack = lambda dict, *args: (dict[arg] for arg in args)
 toclass = lambda cls, lcs, *args: [setattr(cls, arg, lcs[arg]) for arg in args]
@@ -51,6 +53,7 @@ mario_h = 25
 # testFPS
 countFPS = None
 arduino_serial = None
+allList = [(0, 0) for i in range(20)]
 
 GameState = Enum("GameState", "LEAVE ENTER WAIT LIVE OVER HANG")
 
@@ -126,12 +129,13 @@ class Volleyball:
             print("size:", len(frame), len(frame[0]))
             zeroPixel = load_pattern(SCORE_ZERO_FILE, SCORE)
             missPixel = load_pattern(MISS_FILE, MISS)
+            ingamePixel = load_pattern(INGAME_FILE, INGAME)
             gameState = GameState.HANG
             gameScore = 0
             recordPos = [0, 0, 0, 0]
             center = None
             toclass(self, locals(), \
-                'cap', 'frame', 'zeroPixel', 'missPixel', 'gameState', 'gameScore', 'center', 'recordPos')
+                'cap', 'frame', 'zeroPixel', 'missPixel', 'ingamePixel', 'gameState', 'gameScore', 'center', 'recordPos')
         except:
             print("ERROR when opening the virtual camera")
             raise
@@ -155,6 +159,7 @@ class Volleyball:
             last_frame = frame.copy()
             ret, frame = self.cap.read()
             newFrame = frame.copy()
+            # cv2.rectangle(newFrame,(165,300),(185,340),(0,0,0),2)
             # timer.check('getFrame')
             # timer.start('cvSquare')
             # hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -220,31 +225,36 @@ class Volleyball:
                     gameState = GameState.WAIT
                     countFPS.save()
             elif gameState in (GameState.WAIT, GameState.LIVE):
-                missed = False
+                missed = 0
                 if gameState == GameState.WAIT:
                     if compare_pixel(frame, self.zeroPixel, bound=SCORE, fixed=True) < 1.:
                         gameState = GameState.LIVE
                         gameScore = 0
-                        print("begin zero at frame: %d" % countFPS.frames())
+                        print("  begin zero at frame: %d" % countFPS.frames())
                         countFPS.save()
                     if countFPS.frames() > 140:
                         gameState = GameState.OVER
-                        print("bug place")
-                        missed = True
+                        print("  bug place!!!")
+                        missed = -1
                         countFPS.save()
                 else:
-                    lst = compare_pixel(frame, last_frame, bound=SCORE, fixed=False)
-                    if 40. < lst \
-                    or compare_pixel(frame, self.missPixel, bound=MISS, fixed=True) < 30.:
-                        # reward -= 5
-                        print("You get %d points this time! miss frames: %d" % (gameScore, countFPS.frames()))
+                    if 4. < compare_pixel(frame, self.ingamePixel, bound=INGAME, fixed=True):
                         gameState = GameState.OVER
-                        missed = True
+                        print("  out of map???")
+                        missed = -1
                         countFPS.save()
-                    elif 1.< lst < 40.:
+                    if compare_pixel(frame, self.missPixel, bound=MISS, fixed=True) < 30.:
+                        # print(compare_pixel(frame, self.ingamePixel, bound=INGAME, fixed=True))
+                        # print(compare_pixel(frame, self.missPixel, bound=MISS, fixed=True))
+                        # reward -= 5
+                        print("  You get %d points this time! miss frames: %d" % (gameScore, countFPS.frames()))
+                        gameState = GameState.OVER
+                        missed = 1
+                        countFPS.save()
+                    elif 1.< compare_pixel(frame, last_frame, bound=SCORE, fixed=False) < 40.:
                         gameScore += 1
                         reward += gameScore * 10
-                        print("score: %d, total frames: %d" % (gameScore, countFPS.frames()))
+                        print("  score: %d, total frames: %d" % (gameScore, countFPS.frames()))
                         countFPS.save()
 
                 hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -255,13 +265,17 @@ class Volleyball:
                     c = max(contours, key = cv2.contourArea)
                     # find the center of the bounding box
                     x,y,w,h = cv2.boundingRect(c)
+                    last_center = center
                     center = perspectiveTransform((int(x+w/2), int(y+h/2+mario_h)), M)
 
-                    # if last_center != None and abs(np.array(last_center) - np.array(center)).mean() > 10:
-                    #     center = last_center
+                    if last_center != None and abs(np.array(last_center) - center).mean() > 10.:
+                        center = last_center
                     a = center - CENTER
                     reward += 0.1 / 2000 * (MLEN - np.linalg.norm(a))
                     center = tuple(np.int8(center).tolist())
+                    allList.append(center)
+                    allList.pop(0)
+
                     cv2.circle(newFrame, (int(x+w/2), int(y+h/2+mario_h)), 2, (255,255,0), 2)
                     cv2.circle(newFrame, (center[0], center[1]), 2, (0,255,0), 2)
                     cv2.circle(newFrame, (CENTER[0], CENTER[1]), 2, (0,0,255), 2)
@@ -276,23 +290,31 @@ class Volleyball:
                     #     # print("forbid C")
                     if center[0] < boundField[0]:
                         action = 0 if action == 2 else action
+                        reward -= 0.01
                         # print("boundA")
                     if center[0] > boundField[1]:
                         action = 0 if action == 4 else action
+                        reward -= 0.01
                         # print("boundB")
                     if center[1] < boundField[2]:
                         action = 0 if action == 1 else action
+                        reward -= 0.01
                         # print("boundC")
                     if center[1] > boundField[3]:
                         action = 0 if action == 3 else action
+                        reward -= 0.01
                         # print("boundD")
 
-                    if missed:
+                    if missed != 0:
+                        if missed == 1:
+                            a = allList[17] - CENTER
+                        else:
+                            a = allList[5] - CENTER
                         recordPos = [0, 0, 0, 0]
                         if a[0] < 0:
-                            recordPos[3] = ((-a[0])**0.5)*4
+                            recordPos[3] = ((-a[0])**0.5)*2.5
                         else:
-                            recordPos[1] = (a[0]**0.5)*4
+                            recordPos[1] = (a[0]**0.5)*2.5
                         if a[1] < 0:
                             recordPos[2] = ((-a[1])**0.5)*4
                         else:
@@ -319,9 +341,10 @@ class Volleyball:
             cv2.imshow('frame', newFrame)
             inputC = cv2.waitKey(1)
             if inputC == ord('q'):
-#                 -- use to capture the 0 score image --
-#                 save_pattern(SCORE_ZERO_FILE, frame, SCORE)
-#                 save_pattern(MISS_FILE, frame, MISS)
+                # -- use to capture the 0 score image --
+                # save_pattern(SCORE_ZERO_FILE, frame, SCORE)
+                # save_pattern(MISS_FILE, frame, MISS)
+                # save_pattern(INGAME_FILE, frame, INGAME)
                 return (False, None, 0, frame)
             elif inputC == ord('f'):
                 if gameState == GameState.HANG:
