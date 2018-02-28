@@ -8,8 +8,8 @@ class Serial:
         self.ser.open()
         self.operation = ""
     
-    def qsend(self, X, Y):
-        self.ser.write(bytes(X + " " + Y, 'ascii'))
+    def qsend(self, action):
+        self.ser.write(bytes(action + " !", 'ascii'))
 
     def send(self):
         self.ser.write(bytes(self.operation, 'ascii'))
@@ -24,8 +24,8 @@ class Serial_null:
     def __init__(self, BAUD=57600, PORT="COM4"):
         print("Serial test")
     
-    def qsend(self, X, Y):
-        pass
+    def qsend(self, action):
+        print(action + " !")
     
     def send(self):
         pass
