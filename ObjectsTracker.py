@@ -1,7 +1,9 @@
 import numpy as np
 import cv2
 import math
-from VolleyBall import field, Width, Height
+from VolleyBall import Width, Height
+
+field = np.array([[190, 145], [190, 290], [435, 290], [390, 145]])
 
 def make_mask(width, height, contour):
     mask = np.zeros((height, width), np.uint8)
@@ -19,6 +21,7 @@ CLR_BALL = ((175,150,0), (5,250,220))
 
 CLR_RNGS = [CLR_HAT, CLR_SHD, CLR_BALL]
 masks = [None, mask_field, None]
+# masks = [None, None, None]
 
 class ObjectsTracker():
     """Tracks objects in a video"""
@@ -55,10 +58,10 @@ class ObjectsTracker():
             return None
 
     def update(self, frame):
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         contours = []
         for i, color_range in enumerate(self.color_ranges):
             lr, ur = color_range
+            hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
             contours.append(ObjectsTracker.detect_color(hsv, lr, ur, self.masks[i], minArea = 6))
 
             

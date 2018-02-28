@@ -80,18 +80,18 @@ class Runforshadow():
 					if p_ball is None:
 						p_ball = np.array((0, 0))
 					
-					if self.cms[0] < 10 and self.pList[-1][0] != 0 and np.linalg.norm(self.pList[-1] - p_player) > 30.:
+					if self.cms[0] < 10 and self.pList[-1][0] != 0 and np.linalg.norm(self.pList[-1] - p_player) > 25.:
 						p_player = np.array(self.pList[-1])
 						# print(self.pList)
 						self.cms[0] += 1
 					else:
 						self.cms[0] = 0
-					if self.cms[1] < 10 and self.bList[-1][0] != 0 and np.linalg.norm(self.bList[-1] - p_ball) > 30.:
+					if self.cms[1] < 10 and self.bList[-1][0] != 0 and np.linalg.norm(self.bList[-1] - p_ball) > 25.:
 						p_ball = self.calc(self.bList)
 						self.cms[1] += 1
 					else:
 						self.cms[1] = 0
-					if self.cms[2] < 10 and self.sList[-1][0] != 0 and np.linalg.norm(self.sList[-1] - p_shadow) > 30.:
+					if self.cms[2] < 10 and self.sList[-1][0] != 0 and np.linalg.norm(self.sList[-1] - p_shadow) > 25.:
 						p_shadow = self.calc(self.sList)
 						self.cms[2] += 1
 					else:
@@ -105,41 +105,74 @@ class Runforshadow():
 					self.bList.pop(0)
 					normal = False
 					# print(centers, p_player, p_shadow, p_ball)
+					
+					cv2.circle(frame, (p_player[0], p_player[1]), 2, (255,0,0), 4)
+					cv2.circle(frame, (p_shadow[0], p_shadow[1]), 2, (0,255,0), 4)
+					cv2.circle(frame, (p_ball[0], p_ball[1]), 2, (0,0,255), 4)
+
+					rx, ry = 0, 0
 					if p_player[0] != 0 and p_shadow[0] != 0 and p_ball[0] != 0:
 						normal = True
 						p_player += np.array((0, mario_h))
 						p_new_player = perspectiveTransform(p_player, M)
 						p_new_shadow = perspectiveTransform(p_shadow, M)
-						cv2.circle(frame, (p_player[0], p_player[1]), 2, (255,0,0), 4)
-						cv2.circle(frame, (p_shadow[0], p_shadow[1]), 2, (0,255,0), 4)
-						cv2.circle(frame, (p_ball[0], p_ball[1]), 2, (0,0,255), 4)
 					else:
 						p_player = p_shadow = p_ball = p_new_player = p_new_shadow = np.array((0,0))
+
+					if self.pList[-1][0] != 0 and self.pList[-4][0] != 0:
+						dist = self.pList[-1] - self.pList[-4]
+						if abs(dist[0]) > 8.:
+							rx = 1 if dist[0] > 0 else -1
+							# print('bb')
+						if abs(dist[1]) > 8.:
+							# print('gg')
+							ry = 1 if dist[1] > 0 else -1
 
 					cv2.imshow('nxt', frame)
 					if (cv2.waitKey(1) == ord('q')):
 						cv2.destroyAllWindows()
 						raise Exception("key interrupt")
+
 					self.action = 0
 					if normal:
 						dx = p_new_shadow[0] - p_new_player[0]
 						dy = p_new_shadow[1] - p_new_player[1]
-						if dx * dx + dy * dy < 50:
+						# dx = CENTER[0] - p_new_player[0]
+						# dy = CENTER[1] - p_new_player[1]
+						print(p_new_shadow, p_new_player)
+						if dx * dx + dy * dy < 25:
 							self.action = 0
 						elif self.md != 0:
 							self.md -= 1
 						else:
-							self.disc(dx, dy)
-							if self.cpxy(dx, dy):
-								if dx > 0:
-									self.action = 4
+							# self.disc(dx, dy)
+							# if self.cpxy(dx, dy):
+							# 	if dx > 0:
+							# 		self.action = 4
+							# 	else:
+							# 		self.action = 2
+							# else:
+							# 	if dy > 0:
+							# 		self.action = 3
+							# 	else:
+							# 		self.action = 1
+							xlb, xrb = -3, 3
+							ylb, yrb = -3, 3
+							if rx:
+								xlb, xrb = -10, 10
+							if ry:
+								ylb, yrb = -10, 10
+							if dx > xrb or dx < xlb:
+								if dy > yrb or dy < ylb:
+									if dx > 0:
+										self.action = 7 if dy > 0 else 8
+									else:
+										self.action = 6 if dy > 0 else 5
 								else:
-									self.action = 2
+									self.action = 4 if dx > 0 else 2
 							else:
-								if dy > 0:
-									self.action = 3
-								else:
-									self.action = 1
+								if dy > yrb or dy < ylb:
+									self.action = 3 if dy > 0 else 1
 					self.his.append(self.action)
 					self.his.pop(0)
 		except:

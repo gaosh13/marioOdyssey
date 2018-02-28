@@ -48,7 +48,7 @@ fieldC = np.array(((372-w_in, 87), (372+w_bl, 87), (453+w_bl, 348), (453-w_in, 3
 b_in = 10
 boundField = np.array([0+b_in, 77-b_in, 0+b_in, 100-b_in])
 
-mario_h = 25
+mario_h = 20
 
 # testFPS
 countFPS = None
@@ -97,8 +97,16 @@ def action2tuple(action):
         return ("", "a")
     elif action == 3:
         return ("s", "")
-    else:
+    elif action == 4:
         return ("", "d")
+    elif action == 5:
+        return ("w", "a")
+    elif action == 6:
+        return ("s", "a")
+    elif action == 7:
+        return ("s", "d")
+    else:
+        return ("w", "d")
 
 def perspectiveTransform(v, M):
     p = np.array((v[0], v[1], 1.))
