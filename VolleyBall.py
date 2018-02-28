@@ -140,7 +140,7 @@ class Volleyball:
             print("ERROR when opening the virtual camera")
             raise
         
-    def step(self, action="STAY"):
+    def step(self, action=0):
         frame, gameState, gameScore, center, recordPos = \
             self.frame, self.gameState, self.gameScore, self.center, self.recordPos
         try:
@@ -193,21 +193,21 @@ class Volleyball:
 
 #           -- state machine --
             if gameState == GameState.HANG:
-                arduino_serial.qsend(action)
+                arduino_serial.qsend(*action2tuple(action))
             elif gameState == GameState.LEAVE:
                 # arduino_serial.qsend("d", "")
                 if countFPS.frames() < recordPos[0]:
-                    arduino_serial.qsend("MOVE 128 0")
+                    arduino_serial.qsend("w", "")
                 elif countFPS.frames() < recordPos[1]:
-                    arduino_serial.qsend("MOVE 0 128")
+                    arduino_serial.qsend("a", "")
                 elif countFPS.frames() < recordPos[2]:
-                    arduino_serial.qsend("MOVE 128 256")
+                    arduino_serial.qsend("s", "")
                 elif countFPS.frames() < recordPos[3]:
-                    arduino_serial.qsend("MOVE 256 128")
+                    arduino_serial.qsend("d", "")
                 elif countFPS.frames() < recordPos[3] + 20:
                     pass
                 elif countFPS.frames() < recordPos[3] + 60:
-                    arduino_serial.qsend("MOVE 256 128")
+                    arduino_serial.qsend("d", "")
                 elif countFPS.frames() < recordPos[3] + 120:
                     pass
                 else:
@@ -217,10 +217,10 @@ class Volleyball:
             elif gameState == GameState.ENTER:
                 center = None
                 if countFPS.frames() < 45:
-                    arduino_serial.qsend("MOVE 0 128")
+                    arduino_serial.qsend("a", "")
                     # countFPS.save()
                 if 45 <= countFPS.frames() < 50:
-                    arduino_serial.qsend("MOVE 128 256")
+                    arduino_serial.qsend("s", "")
                 if countFPS.frames() > 55:
                     gameState = GameState.WAIT
                     countFPS.save()
@@ -321,7 +321,7 @@ class Volleyball:
                             recordPos[0] = (a[1]**0.5)*4
                         for i in range(1, len(recordPos)):
                             recordPos[i] += recordPos[i-1]
-                arduino_serial.qsend(action)
+                arduino_serial.qsend(*action2tuple(action))
             elif gameState == GameState.OVER:
                 if countFPS.frames() > 30:
                     gameState = GameState.LEAVE
