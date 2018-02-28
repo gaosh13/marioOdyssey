@@ -240,17 +240,17 @@ class Volleyball:
                         gameScore = 0
                         print("  begin zero at frame: %d" % countFPS.frames())
                         countFPS.save()
-                    if countFPS.frames() > 140:
-                        gameState = GameState.OVER
-                        print("  bug place!!!")
-                        missed = -1
-                        countFPS.save()
+                    # if countFPS.frames() > 140:
+                    #     gameState = GameState.OVER
+                    #     print("  bug place!!!")
+                    #     missed = -1
+                    #     countFPS.save()
                 else:
-                    if 4. < compare_pixel(frame, self.ingamePixel, bound=INGAME, fixed=True):
-                        gameState = GameState.OVER
-                        print("  out of map???")
-                        missed = -1
-                        countFPS.save()
+                    # if 4. < compare_pixel(frame, self.ingamePixel, bound=INGAME, fixed=True):
+                    #     gameState = GameState.OVER
+                    #     print("  out of map???")
+                    #     missed = -1
+                    #     countFPS.save()
                     if compare_pixel(frame, self.missPixel, bound=MISS, fixed=True) < 30.:
                         # print(compare_pixel(frame, self.ingamePixel, bound=INGAME, fixed=True))
                         # print(compare_pixel(frame, self.missPixel, bound=MISS, fixed=True))
@@ -331,6 +331,7 @@ class Volleyball:
                             recordPos[i] += recordPos[i-1]
                 arduino_serial.qsend(*action2tuple(action))
             elif gameState == GameState.OVER:
+                gameState = GameState.HANG
                 if countFPS.frames() > 30:
                     gameState = GameState.LEAVE
                     countFPS.save()
@@ -357,7 +358,7 @@ class Volleyball:
             elif inputC == ord('f'):
                 if gameState == GameState.HANG:
                     countFPS.save()
-                    gameState = GameState.ENTER
+                    gameState = GameState.WAIT
                 else:
                     gameState = GameState.HANG
             elif inputC == ord('c'):

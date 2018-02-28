@@ -81,18 +81,18 @@ class Runforshadow():
 						p_ball = np.array((0, 0))
 					
 					if self.cms[0] < 10 and self.pList[-1][0] != 0 and np.linalg.norm(self.pList[-1] - p_player) > 25.:
-						p_player = np.array(self.pList[-1])
+						# p_player = np.array(self.pList[-1])
 						# print(self.pList)
 						self.cms[0] += 1
 					else:
 						self.cms[0] = 0
 					if self.cms[1] < 10 and self.bList[-1][0] != 0 and np.linalg.norm(self.bList[-1] - p_ball) > 25.:
-						p_ball = self.calc(self.bList)
+						# p_ball = self.calc(self.bList)
 						self.cms[1] += 1
 					else:
 						self.cms[1] = 0
 					if self.cms[2] < 10 and self.sList[-1][0] != 0 and np.linalg.norm(self.sList[-1] - p_shadow) > 25.:
-						p_shadow = self.calc(self.sList)
+						# p_shadow = self.calc(self.sList)
 						self.cms[2] += 1
 					else:
 						self.cms[2] = 0
@@ -121,12 +121,12 @@ class Runforshadow():
 
 					if self.pList[-1][0] != 0 and self.pList[-4][0] != 0:
 						dist = self.pList[-1] - self.pList[-4]
-						if abs(dist[0]) > 8.:
-							rx = 1 if dist[0] > 0 else -1
-							# print('bb')
-						if abs(dist[1]) > 8.:
-							# print('gg')
-							ry = 1 if dist[1] > 0 else -1
+						# if abs(dist[0]) > 8.:
+						# 	rx = 1 if dist[0] > 0 else -1
+						# 	# print('bb')
+						# if abs(dist[1]) > 8.:
+						# 	# print('gg')
+						# 	ry = 1 if dist[1] > 0 else -1
 
 					cv2.imshow('nxt', frame)
 					if (cv2.waitKey(1) == ord('q')):
@@ -139,7 +139,7 @@ class Runforshadow():
 						dy = p_new_shadow[1] - p_new_player[1]
 						# dx = CENTER[0] - p_new_player[0]
 						# dy = CENTER[1] - p_new_player[1]
-						print(p_new_shadow, p_new_player)
+						# print(p_new_shadow, p_new_player)
 						if dx * dx + dy * dy < 25:
 							self.action = 0
 						elif self.md != 0:
