@@ -14,7 +14,7 @@ countAll = lambda la, lb: sum([la.count(b) for b in lb])
 
 class Runforshadow():
 	def __init__(self):
-		self.game = Volleyball(serial=True)
+		self.game = Volleyball(serial=2)
 		self.countFPS = TestFPS()
 		self.pList = []
 		self.sList = []

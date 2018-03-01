@@ -37,3 +37,30 @@ class Serial_null:
     
     def close(self):
         pass
+
+class Serial_physical(Serial):
+    def __init__(self, BAUD=57600, PORT="COM5"):
+        super().__init__(BAUD, PORT)
+
+    def qsend(self, X, Y):
+        res = ""
+        if X == "" and Y == "":
+            res = "s"
+        if X == "w":
+            if Y == "":
+                res = "w"
+            elif Y == "a":
+                res = "q"
+            else:
+                res = "e"
+        elif X == "s":
+            if Y == "":
+                res = "x"
+            elif Y == "a":
+                res = "z"
+            else:
+                res = "c"
+        else:
+            res = Y
+        
+        self.ser.write(bytes(res, 'ascii'))

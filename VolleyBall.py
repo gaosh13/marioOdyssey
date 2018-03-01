@@ -4,7 +4,7 @@ import time
 import json
 from TestFPS import TestFPS
 from TimeCount import TimeCount
-from Arduino_serial import Serial, Serial_null
+from Arduino_serial import Serial, Serial_null, Serial_physical
 from enum import Enum
 
 Width = 640
@@ -123,7 +123,8 @@ class Volleyball:
             timer = TimeCount()
             global countFPS, arduino_serial
             countFPS = TestFPS()
-            arduino_serial = Serial() if serial else Serial_null()
+            arduino_serial = (Serial_physical() if serial == 2 else Serial()) \
+            if serial else Serial_null()
             vc = int(input().split(' ')[0])
         
             cap = cv2.VideoCapture(vc)
