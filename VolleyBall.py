@@ -48,7 +48,7 @@ fieldC = np.array(((372-w_in, 87), (372+w_bl, 87), (453+w_bl, 348), (453-w_in, 3
 b_in = 10
 boundField = np.array([0+b_in, 77-b_in, 0+b_in, 100-b_in])
 
-mario_h = 20
+mario_h = 30
 
 # testFPS
 countFPS = None
@@ -240,7 +240,7 @@ class Volleyball:
                         gameScore = 0
                         print("  begin zero at frame: %d" % countFPS.frames())
                         countFPS.save()
-                    if countFPS.frames() > 140:
+                    if countFPS.frames() > 160:
                         gameState = GameState.OVER
                         print("  bug place!!!")
                         missed = -1

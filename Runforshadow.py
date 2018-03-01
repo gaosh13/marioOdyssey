@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from math import pi
 from TestFPS import TestFPS
 from VolleyBall import Volleyball, GameState, M, perspectiveTransform, mario_h, CENTER
 from ObjectsTracker import objTracker
@@ -8,6 +9,8 @@ import cv2
 from enum import Enum
 
 PlayerState = Enum("PlayerState", "ADJUST POSITION DIRECT THROW WATCH")
+
+countAll = lambda la, lb: sum([la.count(b) for b in lb])
 
 class Runforshadow():
 	def __init__(self):
@@ -106,10 +109,6 @@ class Runforshadow():
 					normal = False
 					# print(centers, p_player, p_shadow, p_ball)
 					
-					cv2.circle(frame, (p_player[0], p_player[1]), 2, (255,0,0), 4)
-					cv2.circle(frame, (p_shadow[0], p_shadow[1]), 2, (0,255,0), 4)
-					cv2.circle(frame, (p_ball[0], p_ball[1]), 2, (0,0,255), 4)
-
 					rx, ry = 0, 0
 					if p_player[0] != 0 and p_shadow[0] != 0 and p_ball[0] != 0:
 						normal = True
@@ -119,14 +118,9 @@ class Runforshadow():
 					else:
 						p_player = p_shadow = p_ball = p_new_player = p_new_shadow = np.array((0,0))
 
-					if self.pList[-1][0] != 0 and self.pList[-4][0] != 0:
-						dist = self.pList[-1] - self.pList[-4]
-						if abs(dist[0]) > 8.:
-							rx = 1 if dist[0] > 0 else -1
-							# print('bb')
-						if abs(dist[1]) > 8.:
-							# print('gg')
-							ry = 1 if dist[1] > 0 else -1
+					cv2.circle(frame, (p_player[0], p_player[1]), 2, (255,0,0), 4)
+					cv2.circle(frame, (p_shadow[0], p_shadow[1]), 2, (0,255,0), 4)
+					cv2.circle(frame, (p_ball[0], p_ball[1]), 2, (0,0,255), 4)
 
 					cv2.imshow('nxt', frame)
 					if (cv2.waitKey(1) == ord('q')):
@@ -135,44 +129,84 @@ class Runforshadow():
 
 					self.action = 0
 					if normal:
-						dx = p_new_shadow[0] - p_new_player[0]
-						dy = p_new_shadow[1] - p_new_player[1]
+						fx = p_new_shadow - p_new_player
+						cw = countAll(self.his, [1, 5, 8])
+						ca = countAll(self.his, [2, 5, 6])
+						cs = countAll(self.his, [3, 6, 7])
+						cd = countAll(self.his, [4, 7, 8])
+						if cw - 2 * cs > 8 and abs(fx[0]) > 15:
+							fx[1] = min(0, fx[1] + (cw - 2 * cs) * 1)
+							# fx[1] = 0
+						if ca - 2 * cd > 8 and abs(fx[1]) > 15:
+							fx[0] = min(0, fx[0] + (ca - 2 * cd) * 1)
+							# fx[0] = 0
+						if cs - 2 * cw > 8 and abs(fx[0]) > 15:
+							fx[1] = max(0, fx[1] - (cs - 2 * cw) * 1)
+							# fx[1] = 0
+						if cd - 2 * ca > 8 and abs(fx[1]) > 15:
+							fx[0] = max(0, fx[0] - (cd - 2 * ca) * 1)
+							# fx[0] = 0
+						
+						dgr = math.atan2(fx[1], fx[0])
+						# print(fx, dgr)
+						# dx = p_new_shadow[0] - p_new_player[0]
+						# dy = p_new_shadow[1] - p_new_player[1]
+						if np.linalg.norm(fx) < 1.:
+							self.action = 0
+						elif -7.*pi/8 < dgr < -5.*pi/8:
+							self.action = 5
+						elif -5.*pi/8 < dgr < -3.*pi/8:
+							self.action = 1
+						elif -3.*pi/8 < dgr < -1.*pi/8:
+							self.action = 8
+						elif -1.*pi/8 < dgr < 1.*pi/8:
+							self.action = 4
+						elif 1.*pi/8 < dgr < 3.*pi/8:
+							self.action = 7
+						elif 3.*pi/8 < dgr < 5.*pi/8:
+							self.action = 3
+						elif 5.*pi/8 < dgr < 7.*pi/8:
+							self.action = 6
+						else:
+							self.action = 2
+
+
 						# dx = CENTER[0] - p_new_player[0]
 						# dy = CENTER[1] - p_new_player[1]
-						print(p_new_shadow, p_new_player)
-						if dx * dx + dy * dy < 25:
-							self.action = 0
-						elif self.md != 0:
-							self.md -= 1
-						else:
-							# self.disc(dx, dy)
-							# if self.cpxy(dx, dy):
-							# 	if dx > 0:
-							# 		self.action = 4
-							# 	else:
-							# 		self.action = 2
-							# else:
-							# 	if dy > 0:
-							# 		self.action = 3
-							# 	else:
-							# 		self.action = 1
-							xlb, xrb = -3, 3
-							ylb, yrb = -3, 3
-							if rx:
-								xlb, xrb = -10, 10
-							if ry:
-								ylb, yrb = -10, 10
-							if dx > xrb or dx < xlb:
-								if dy > yrb or dy < ylb:
-									if dx > 0:
-										self.action = 7 if dy > 0 else 8
-									else:
-										self.action = 6 if dy > 0 else 5
-								else:
-									self.action = 4 if dx > 0 else 2
-							else:
-								if dy > yrb or dy < ylb:
-									self.action = 3 if dy > 0 else 1
+						# print(p_new_shadow, p_new_player)
+						# if dx * dx + dy * dy < 25:
+						# 	self.action = 0
+						# elif self.md != 0:
+						# 	self.md -= 1
+						# else:
+						# 	# self.disc(dx, dy)
+						# 	# if self.cpxy(dx, dy):
+						# 	# 	if dx > 0:
+						# 	# 		self.action = 4
+						# 	# 	else:
+						# 	# 		self.action = 2
+						# 	# else:
+						# 	# 	if dy > 0:
+						# 	# 		self.action = 3
+						# 	# 	else:
+						# 	# 		self.action = 1
+						# 	xlb, xrb = -3, 3
+						# 	ylb, yrb = -3, 3
+						# 	if rx:
+						# 		xlb, xrb = -10, 10
+						# 	if ry:
+						# 		ylb, yrb = -10, 10
+						# 	if dx > xrb or dx < xlb:
+						# 		if dy > yrb or dy < ylb:
+						# 			if dx > 0:
+						# 				self.action = 7 if dy > 0 else 8
+						# 			else:
+						# 				self.action = 6 if dy > 0 else 5
+						# 		else:
+						# 			self.action = 4 if dx > 0 else 2
+						# 	else:
+						# 		if dy > yrb or dy < ylb:
+						# 			self.action = 3 if dy > 0 else 1
 					self.his.append(self.action)
 					self.his.pop(0)
 		except:
