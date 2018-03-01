@@ -15,7 +15,7 @@ mask_field = make_mask(Width, Height,field)
 # upper and lower range of the green color of the luigi hat
 CLR_HAT = ((45,150,40), (57,210,220))
 # upper and lower range of the shadow color
-CLR_SHD = ((14,127,153), (15,153,178))
+CLR_SHD = ((14,127,153), (16,170,210))
 # upper and lower range of the ball color
 CLR_BALL = ((175,150,0), (5,250,220))
 
@@ -84,4 +84,4 @@ class ObjectsTracker():
             self.last_pos[i] = pos
         return centers, frame
 
-objTracker = ObjectsTracker(3, CLR_RNGS, masks)
+objTracker = ObjectsTracker(3, CLR_RNGS, masks, drawCntrs=False)

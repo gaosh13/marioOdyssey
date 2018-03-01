@@ -284,9 +284,9 @@ class Volleyball:
                     allList.append(center)
                     allList.pop(0)
 
-                    cv2.circle(newFrame, (int(x+w/2), int(y+h/2+mario_h)), 2, (255,255,0), 2)
-                    cv2.circle(newFrame, (center[0], center[1]), 2, (0,255,0), 2)
-                    cv2.circle(newFrame, (CENTER[0], CENTER[1]), 2, (0,0,255), 2)
+                    # cv2.circle(newFrame, (int(x+w/2), int(y+h/2+mario_h)), 2, (255,255,0), 2)
+                    # cv2.circle(newFrame, (center[0], center[1]), 2, (0,255,0), 2)
+                    # cv2.circle(newFrame, (CENTER[0], CENTER[1]), 2, (0,0,255), 2)
                     # if action == 1 and cv2.pointPolygonTest(fieldA, center, False) >= 0:
                     #     action = 0
                     #     # print("forbid A")

@@ -1,6 +1,7 @@
 import numpy as np
 import math
 from TestFPS import TestFPS
+from TimeCount import TimeCount
 from VolleyBall import Volleyball, GameState, M, perspectiveTransform, mario_h, CENTER
 from ObjectsTracker import objTracker
 import cv2
@@ -60,6 +61,7 @@ class Runforshadow():
 					raise Exception('stop')
 				print("start your performance")
 				self.game_init()
+				timer = TimeCount()
 
 				while True:
 					alive, state, score, frame = self.game.step(self.action)
@@ -81,18 +83,18 @@ class Runforshadow():
 						p_ball = np.array((0, 0))
 					
 					if self.cms[0] < 10 and self.pList[-1][0] != 0 and np.linalg.norm(self.pList[-1] - p_player) > 25.:
-						# p_player = np.array(self.pList[-1])
+						p_player = np.array(self.pList[-1])
 						# print(self.pList)
 						self.cms[0] += 1
 					else:
 						self.cms[0] = 0
 					if self.cms[1] < 10 and self.bList[-1][0] != 0 and np.linalg.norm(self.bList[-1] - p_ball) > 25.:
-						# p_ball = self.calc(self.bList)
+						p_ball = self.calc(self.bList)
 						self.cms[1] += 1
 					else:
 						self.cms[1] = 0
 					if self.cms[2] < 10 and self.sList[-1][0] != 0 and np.linalg.norm(self.sList[-1] - p_shadow) > 25.:
-						# p_shadow = self.calc(self.sList)
+						p_shadow = self.calc(self.sList)
 						self.cms[2] += 1
 					else:
 						self.cms[2] = 0
@@ -105,7 +107,7 @@ class Runforshadow():
 					self.bList.pop(0)
 					normal = False
 					# print(centers, p_player, p_shadow, p_ball)
-					
+
 					cv2.circle(frame, (p_player[0], p_player[1]), 2, (255,0,0), 4)
 					cv2.circle(frame, (p_shadow[0], p_shadow[1]), 2, (0,255,0), 4)
 					cv2.circle(frame, (p_ball[0], p_ball[1]), 2, (0,0,255), 4)
