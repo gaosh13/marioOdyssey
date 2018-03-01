@@ -20,7 +20,7 @@ class Runforshadow():
 		self.sList = []
 		self.bList = []
 		self.action = 0
-		self.md = 0
+		self.md = .0
 		
 	def game_init(self):
 		self.pList = [np.array((0,0)) for i in range(20)]
@@ -29,7 +29,7 @@ class Runforshadow():
 		self.his = [0 for i in range(20)]
 		self.cms = [0, 0, 0]
 		self.action = 0
-		self.md = 0
+		self.md = .0
 
 	def calc(self, lst):
 		for i in range(-5, 0):
@@ -122,10 +122,10 @@ class Runforshadow():
 					cv2.circle(frame, (p_shadow[0], p_shadow[1]), 2, (0,255,0), 4)
 					cv2.circle(frame, (p_ball[0], p_ball[1]), 2, (0,0,255), 4)
 
-					cv2.imshow('nxt', frame)
-					if (cv2.waitKey(1) == ord('q')):
-						cv2.destroyAllWindows()
-						raise Exception("key interrupt")
+					# cv2.imshow('nxt', frame)
+					# if (cv2.waitKey(1) == ord('q')):
+					# 	cv2.destroyAllWindows()
+					# 	raise Exception("key interrupt")
 
 					self.action = 0
 					if normal:
@@ -134,18 +134,18 @@ class Runforshadow():
 						ca = countAll(self.his, [2, 5, 6])
 						cs = countAll(self.his, [3, 6, 7])
 						cd = countAll(self.his, [4, 7, 8])
-						if cw - 2 * cs > 8 and abs(fx[0]) > 15:
-							fx[1] = min(0, fx[1] + (cw - 2 * cs) * 1)
-							# fx[1] = 0
-						if ca - 2 * cd > 8 and abs(fx[1]) > 15:
-							fx[0] = min(0, fx[0] + (ca - 2 * cd) * 1)
-							# fx[0] = 0
-						if cs - 2 * cw > 8 and abs(fx[0]) > 15:
-							fx[1] = max(0, fx[1] - (cs - 2 * cw) * 1)
-							# fx[1] = 0
-						if cd - 2 * ca > 8 and abs(fx[1]) > 15:
-							fx[0] = max(0, fx[0] - (cd - 2 * ca) * 1)
-							# fx[0] = 0
+						# if cw - 2 * cs > 8 and abs(fx[0]) > 15:
+						# 	fx[1] = min(0, fx[1] + (cw - 2 * cs) * 1)
+						# 	# fx[1] = 0
+						# if ca - 2 * cd > 8 and abs(fx[1]) > 15:
+						# 	fx[0] = min(0, fx[0] + (ca - 2 * cd) * 1)
+						# 	# fx[0] = 0
+						# if cs - 2 * cw > 8 and abs(fx[0]) > 15:
+						# 	fx[1] = max(0, fx[1] - (cs - 2 * cw) * 1)
+						# 	# fx[1] = 0
+						# if cd - 2 * ca > 8 and abs(fx[1]) > 15:
+						# 	fx[0] = max(0, fx[0] - (cd - 2 * ca) * 1)
+						# 	# fx[0] = 0
 						
 						dgr = math.atan2(fx[1], fx[0])
 						# print(fx, dgr)
@@ -170,10 +170,29 @@ class Runforshadow():
 						else:
 							self.action = 2
 
+						if self.md > 0:
+							self.md -= 1.
+							self.action = 0
+						else:
+							if score <= 10:
+								if np.linalg.norm(fx) < 20:
+									self.md += 0.8
+								else:
+									self.md += 0.6
+							elif score <= 16:
+								if np.linalg.norm(fx) < 20:
+									self.md += 0.6
+								else:
+									self.md += 0.4
+							else:
+								if np.linalg.norm(fx) < 20:
+									self.md += 0.5
+								else:
+									self.md += 0.3
 
 						# dx = CENTER[0] - p_new_player[0]
 						# dy = CENTER[1] - p_new_player[1]
-						# print(p_new_shadow, p_new_player)
+						# print(p_new_shadow, p_new_player, self.action)
 						# if dx * dx + dy * dy < 25:
 						# 	self.action = 0
 						# elif self.md != 0:
