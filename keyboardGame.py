@@ -34,16 +34,23 @@ def keyboard_listener():
 		listener.join()	
 
 def keys_to_action():
-	if len(keys_pressed) == 0:
-		return 0
-	if keys_pressed[0] == 'w':
+	if all(key in keys_pressed for key in 'wa'):
+		return 5
+	elif all(key in keys_pressed for key in 'sa'):
+		return 6
+	elif all(key in keys_pressed for key in 'sd'):
+		return 7
+	elif all(key in keys_pressed for key in 'wd'):
+		return 8
+	elif 'w' in keys_pressed:
 		return 1
-	elif keys_pressed[0] == 'a':
+	elif 'a' in keys_pressed:
 		return 2
-	elif keys_pressed[0] == 's':
+	elif 's' in keys_pressed:
 		return 3
-	elif keys_pressed[0] == 'd':
+	elif 'd' in keys_pressed:
 		return 4
+	return 0
 
 def main():
 	threads = []
@@ -51,7 +58,7 @@ def main():
 	t = threading.Thread(target=keyboard_listener)
 	threads.append(t)
 	t.start()
-	while True:
+	while t.is_alive():
 		if not game.step(keys_to_action())[0]:
 			break
 

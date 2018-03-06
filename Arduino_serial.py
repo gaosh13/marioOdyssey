@@ -9,7 +9,9 @@ class Serial:
         self.operation = ""
     
     def qsend(self, X, Y):
-        self.ser.write(bytes(X + " " + Y, 'ascii'))
+        if X != "" or Y != "":
+            self.ser.write(bytes(X + Y, 'ascii'))
+            # print(X + Y)
 
     def send(self):
         self.ser.write(bytes(self.operation, 'ascii'))

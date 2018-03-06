@@ -34,6 +34,7 @@ toclass = lambda cls, lcs, *args: [setattr(cls, arg, lcs[arg]) for arg in args]
 lower_green = np.array([45,150,40])
 upper_green = np.array([57,210,220])
 field = np.array([[240, 145], [190, 290], [435, 290], [390, 145]])
+screen = ((120,6),(450,320))
 sqrField = np.array([[0, 0], [0, 100], [77, 100], [77, 0]])
 CENTER = np.array([39, 50])
 MLEN = np.linalg.norm(CENTER)
@@ -42,9 +43,9 @@ M = cv2.getPerspectiveTransform(np.float32(field),np.float32(sqrField))
 w_ex = 50
 w_bl = 500
 w_in = 20
-fieldA = np.array(((240-w_ex,145-w_bl), (390+w_ex,145-w_bl), (390+w_ex, 145+w_in), (240-w_ex, 145+w_in))) # +20
-fieldB = np.array(((190-w_ex,290-w_in), (435+w_ex,290-w_in), (435+w_ex, 290+w_bl), (190-w_ex, 290+w_bl))) # -10
-fieldC = np.array(((372-w_in, 87), (372+w_bl, 87), (453+w_bl, 348), (453-w_in, 348))) # -10
+# fieldA = np.array(((240-w_ex,145-w_bl), (390+w_ex,145-w_bl), (390+w_ex, 145+w_in), (240-w_ex, 145+w_in))) # +20
+# fieldB = np.array(((190-w_ex,290-w_in), (435+w_ex,290-w_in), (435+w_ex, 290+w_bl), (190-w_ex, 290+w_bl))) # -10
+# fieldC = np.array(((372-w_in, 87), (372+w_bl, 87), (453+w_bl, 348), (453-w_in, 348))) # -10
 b_in = 10
 boundField = np.array([0+b_in, 77-b_in, 0+b_in, 100-b_in])
 
@@ -54,6 +55,7 @@ mario_h = 25
 countFPS = None
 arduino_serial = None
 allList = [(0, 0) for i in range(20)]
+gameNum = 0
 
 GameState = Enum("GameState", "LEAVE ENTER WAIT LIVE OVER HANG")
 
@@ -88,6 +90,11 @@ def compare_pixel(frame, last_frame, bound=SCORE, fixed=False):
     pixel_mean = abs((last_frame if fixed else last_frame[t2:b2, l2:r2]) - frame[t2:b2, l2:r2]).mean()
     return pixel_mean
 
+def get_gameNum(file="./operation/gameNum.txt"):
+    global gameNum
+    with open(file, "r") as f:
+        gameNum = int(f.read())
+
 def action2tuple(action):
     if action == 0:
         return ("", "")
@@ -97,8 +104,16 @@ def action2tuple(action):
         return ("", "a")
     elif action == 3:
         return ("s", "")
-    else:
+    elif action == 4:
         return ("", "d")
+    elif action == 5:
+        return ("w", "a")
+    elif action == 6:
+        return ("a", "s")
+    elif action == 7:
+        return ("s", "d")
+    else:
+        return ("w", "d")
 
 def perspectiveTransform(v, M):
     p = np.array((v[0], v[1], 1.))
@@ -145,12 +160,12 @@ class Volleyball:
             self.frame, self.gameState, self.gameScore, self.center, self.recordPos
         try:
           # -- print FPS --
-            # global testFPS
-            # testFPS.plus()
+            global testFPS
+            testFPS.plus()
             # testFPS.print_per_sec()
             # global timer
             # timer.show_per_sec()
-            global countFPS, arduino_serial
+            global countFPS, arduino_serial, gameNum
             countFPS.plus()
             reward = 0
 
@@ -158,8 +173,10 @@ class Volleyball:
             # timer.start('getFrame')
             last_frame = frame.copy()
             ret, frame = self.cap.read()
+            imgOut = cv2.resize(frame[screen[0][1]:screen[1][1], screen[0][0]:screen[1][0]],
+                dsize=(165, 157), interpolation=cv2.INTER_CUBIC)
             newFrame = frame.copy()
-            # cv2.rectangle(newFrame,(165,300),(185,340),(0,0,0),2)
+            # cv2.rectangle(newFrame, screen[0], screen[1], (0,0,0), 2)
             # timer.check('getFrame')
             # timer.start('cvSquare')
             # hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -224,6 +241,7 @@ class Volleyball:
                 if countFPS.frames() > 55:
                     gameState = GameState.WAIT
                     countFPS.save()
+                    testFPS.save()
             elif gameState in (GameState.WAIT, GameState.LIVE):
                 missed = 0
                 if gameState == GameState.WAIT:
@@ -321,6 +339,8 @@ class Volleyball:
                             recordPos[0] = (a[1]**0.5)*4
                         for i in range(1, len(recordPos)):
                             recordPos[i] += recordPos[i-1]
+                    else:
+                        cv2.imwrite("./operation/%d/frame_%d_%d.jpg" % (action, gameNum, testFPS.frames()), imgOut)
                 arduino_serial.qsend(*action2tuple(action))
             elif gameState == GameState.OVER:
                 if countFPS.frames() > 30:
@@ -339,7 +359,9 @@ class Volleyball:
             # for pi in field:
                 # print(perspectiveTransform(pi, M))
             cv2.imshow('frame', newFrame)
+            # cv2.imshow('frame', imgOut)
             inputC = cv2.waitKey(1)
+            # inputC = 100
             if inputC == ord('q'):
                 # -- use to capture the 0 score image --
                 # save_pattern(SCORE_ZERO_FILE, frame, SCORE)
@@ -354,7 +376,7 @@ class Volleyball:
                     gameState = GameState.HANG
             elif inputC == ord('c'):
                 print(gameState)
-            # timer.check('showNkey')
+            timer.check('showNkey')
         except:
             import sys, os
             exc_type, exc_obj, exc_tb = sys.exc_info()
