@@ -95,6 +95,10 @@ def get_gameNum(file="./operation/gameNum.txt"):
     with open(file, "r") as f:
         gameNum = int(f.read())
 
+def write_gameNum(file="./operation/gameNum.txt"):
+    with open(file, "w") as f:
+        f.write(str(gameNum+1))
+
 def action2tuple(action):
     if action == 0:
         return ("", "")
@@ -409,6 +413,7 @@ class Volleyball:
         self.cap.release()
         cv2.destroyAllWindows()
         arduino_serial.close()
+        write_gameNum()
 
 if __name__ == "__main__":
     game = Volleyball(False)

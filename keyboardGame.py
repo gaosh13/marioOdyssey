@@ -61,6 +61,7 @@ def main():
 	while t.is_alive():
 		if not game.step(keys_to_action())[0]:
 			break
+	game.close()
 
 if __name__ == '__main__':
 	main()
