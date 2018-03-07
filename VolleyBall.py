@@ -97,7 +97,7 @@ def get_gameNum(file="./operation/gameNum.txt"):
 
 def write_gameNum(file="./operation/gameNum.txt"):
     with open(file, "w") as f:
-        f.write(str(gameNum+1))
+        f.write(str(gameNum))
 
 def action2tuple(action):
     if action == 0:
@@ -135,6 +135,7 @@ class Volleyball:
             countFPS = TestFPS()
             arduino_serial = Serial() if serial else Serial_null()
             vc = int(input().split(' ')[0])
+            get_gameNum()
         
             cap = cv2.VideoCapture(vc)
             cap.set(cv2.CAP_PROP_FRAME_WIDTH, Width)
@@ -343,6 +344,7 @@ class Volleyball:
                             recordPos[0] = (a[1]**0.5)*4
                         for i in range(1, len(recordPos)):
                             recordPos[i] += recordPos[i-1]
+                        gameNum += 1
                     else:
                         cv2.imwrite("./operation/%d/frame_%d_%d.jpg" % (action, gameNum, testFPS.frames()), imgOut)
                 arduino_serial.qsend(*action2tuple(action))
