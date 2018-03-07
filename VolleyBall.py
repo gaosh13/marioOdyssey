@@ -126,7 +126,7 @@ def perspectiveTransform(v, M):
     return p[0:2]
 
 class Volleyball:
-    def __init__(self, serial=True):
+    def __init__(self, serial=True, collection=False):
         try:
             global testFPS, timer
             testFPS = TestFPS()
@@ -135,7 +135,8 @@ class Volleyball:
             countFPS = TestFPS()
             arduino_serial = Serial() if serial else Serial_null()
             vc = int(input().split(' ')[0])
-            get_gameNum()
+            if collection:
+                get_gameNum()
         
             cap = cv2.VideoCapture(vc)
             cap.set(cv2.CAP_PROP_FRAME_WIDTH, Width)
@@ -155,7 +156,7 @@ class Volleyball:
             recordPos = [0, 0, 0, 0]
             center = None
             toclass(self, locals(), \
-                'cap', 'frame', 'zeroPixel', 'missPixel', 'ingamePixel', 'gameState', 'gameScore', 'center', 'recordPos')
+                'cap', 'frame', 'zeroPixel', 'missPixel', 'ingamePixel', 'gameState', 'gameScore', 'center', 'recordPos', 'collection')
         except:
             print("ERROR when opening the virtual camera")
             raise
@@ -346,7 +347,8 @@ class Volleyball:
                             recordPos[i] += recordPos[i-1]
                         gameNum += 1
                     else:
-                        cv2.imwrite("./operation/%d/frame_%d_%d.jpg" % (action, gameNum, testFPS.frames()), imgOut)
+                        if self.collection:
+                            cv2.imwrite("./operation/%d/frame_%d_%d.jpg" % (action, gameNum, testFPS.frames()), imgOut)
                 arduino_serial.qsend(*action2tuple(action))
             elif gameState == GameState.OVER:
                 if countFPS.frames() > 30:
@@ -393,7 +395,7 @@ class Volleyball:
         toclass(self, locals(), \
             'frame', 'gameState', 'gameScore', 'center', 'recordPos')
         # timer.check('send')
-        return (True, gameState, reward, frame)
+        return (True, gameState, reward, imgOut)
     
     def wait_for_start(self):
         try:
@@ -415,7 +417,8 @@ class Volleyball:
         self.cap.release()
         cv2.destroyAllWindows()
         arduino_serial.close()
-        write_gameNum()
+        if self.collection:
+            write_gameNum()
 
 if __name__ == "__main__":
     game = Volleyball(False)
