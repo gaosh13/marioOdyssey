@@ -262,7 +262,7 @@ class Volleyball:
                         missed = -1
                         countFPS.save()
                 else:
-                    if 4. < compare_pixel(frame, self.ingamePixel, bound=INGAME, fixed=True):
+                    if 10. < compare_pixel(frame, self.ingamePixel, bound=INGAME, fixed=True):
                         gameState = GameState.OVER
                         print("  out of map???")
                         missed = -1

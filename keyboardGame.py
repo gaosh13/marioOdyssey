@@ -54,7 +54,7 @@ def keys_to_action():
 
 def main():
 	threads = []
-	game = Volleyball()
+	game = Volleyball(collection=True)
 	t = threading.Thread(target=keyboard_listener)
 	threads.append(t)
 	t.start()
